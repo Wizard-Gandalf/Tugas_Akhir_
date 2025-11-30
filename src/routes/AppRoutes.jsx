@@ -23,7 +23,7 @@ import PaymentsList from "../pages/Payments/PaymentsList";
 import AddPayment from "../pages/Payments/AddPayment";
 import EditPayment from "../pages/Payments/EditPayment";
 
-import ExportReports from "../pages/Reports/ExportReports";
+import ExportReports from "../pages/Reports/ExportReport";
 
 export default function AppRoutes() {
     return (

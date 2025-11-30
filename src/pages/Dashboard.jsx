@@ -2,21 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../api/supabaseClient";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import OrdersChart from "../components/charts/OrdersChart";
 import LayoutWrapper from "../components/layout/LayoutWrapper";
-
-export default function Dashboard() {
-    return (
-        <LayoutWrapper>
-            {/* seluruh isi dashboard tadi */}
-        </LayoutWrapper>
-    );
-}
-
-<div className="mt-8 p-6 bg-white shadow rounded">
-    <h2 className="text-lg font-medium mb-2">Grafik Pesanan / Bulan</h2>
-    <OrdersChart labels={chartLabel} values={chartValue} />
-</div>
 
 export default function Dashboard() {
     const { admin } = useAuth();
@@ -81,42 +67,48 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-semibold mb-4">Dashboard</h1>
+        <LayoutWrapper>
+            <div className="p-6 text-black dark:text-white">
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <StatCard title="Total Pelanggan" value={stats.customers} />
-                <StatCard title="Total Pesanan" value={stats.orders} />
-                <StatCard title="Pesanan Hari Ini" value={stats.ordersToday} />
-                <StatCard
-                    title="Pendapatan Bulan Ini"
-                    value={"Rp " + stats.monthlyIncome.toLocaleString()}
-                />
-            </div>
+                <h1 className="text-2xl font-semibold mb-4">Dashboard</h1>
 
-            {/* Placeholder Grafik */}
-            <div className="mt-8 p-6 bg-white shadow rounded">
-                <h2 className="text-lg font-medium mb-2">Grafik (Placeholder)</h2>
-                <div className="h-40 flex items-center justify-center text-gray-500">
-                    Grafik akan ditambahkan setelah UI selesai.
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <StatCard title="Total Pelanggan" value={stats.customers} />
+                    <StatCard title="Total Pesanan" value={stats.orders} />
+                    <StatCard title="Pesanan Hari Ini" value={stats.ordersToday} />
+                    <StatCard
+                        title="Pendapatan Bulan Ini"
+                        value={`Rp ${stats.monthlyIncome.toLocaleString()}`}
+                    />
+                </div>
+
+                {/* Grafik Placeholder */}
+                <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded shadow">
+                    <h2 className="text-lg font-medium mb-2">Grafik Pesanan / Bulan</h2>
+
+                    <div className="h-40 flex items-center justify-center 
+                          text-gray-500 dark:text-gray-300">
+                        Grafik akan ditambahkan setelah UI selesai.
+                    </div>
+                </div>
+
+                {/* Shortcut Menu */}
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Shortcut title="Kelola Pelanggan" onClick={() => navigate("/customers")} />
+                    <Shortcut title="Kelola Layanan" onClick={() => navigate("/services")} />
+                    <Shortcut title="Kelola Pesanan" onClick={() => navigate("/orders")} />
                 </div>
             </div>
-
-            {/* Shortcut Menu */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Shortcut title="Kelola Pelanggan" onClick={() => navigate("/customers")} />
-                <Shortcut title="Kelola Layanan" onClick={() => navigate("/services")} />
-                <Shortcut title="Kelola Pesanan" onClick={() => navigate("/orders")} />
-            </div>
-        </div>
+        </LayoutWrapper>
     );
 }
 
 function StatCard({ title, value }) {
     return (
-        <div className="p-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded shadow">
-            <p className="text-gray-600">{title}</p>
+        <div className="p-4 bg-white dark:bg-gray-800 
+                    text-black dark:text-white rounded shadow">
+            <p className="text-gray-600 dark:text-gray-300">{title}</p>
             <p className="text-2xl font-bold">{value}</p>
         </div>
     );
@@ -125,8 +117,8 @@ function StatCard({ title, value }) {
 function Shortcut({ title, onClick }) {
     return (
         <button
-            className="p-4 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
             onClick={onClick}
+            className="p-4 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
         >
             {title}
         </button>
