@@ -10,11 +10,16 @@ export default function EditStaff() {
     const [form, setForm] = useState({
         name: "",
         phone: "",
+        position: "",
     });
 
     useEffect(() => {
         async function loadData() {
-            const { data } = await supabase.from("staff").select("*").eq("id", id).single();
+            const { data } = await supabase
+                .from("staff")
+                .select("*")
+                .eq("id", id)
+                .single();
             if (data) setForm(data);
         }
         loadData();
@@ -28,7 +33,7 @@ export default function EditStaff() {
         e.preventDefault();
         const { error } = await supabase.from("staff").update(form).eq("id", id);
         if (error) alert(error.message);
-        else navigate("/staff");
+        else navigate("/app/staff");
     }
 
     return (
@@ -39,7 +44,7 @@ export default function EditStaff() {
 
             <form
                 className="bg-white dark:bg-gray-800 p-4 rounded shadow w-full md:w-1/2
-                   text-black dark:text-white"
+                           text-black dark:text-white"
                 onSubmit={handleSubmit}
             >
                 <label className="block mb-2">Nama</label>
@@ -47,9 +52,9 @@ export default function EditStaff() {
                     name="name"
                     value={form.name}
                     className="border border-gray-300 dark:border-gray-600 
-                     bg-white dark:bg-gray-700 
-                     text-black dark:text-white 
-                     p-2 w-full mb-3 rounded"
+                               bg-white dark:bg-gray-700 
+                               text-black dark:text-white 
+                               p-2 w-full mb-3 rounded"
                     onChange={handleChange}
                 />
 
@@ -58,9 +63,20 @@ export default function EditStaff() {
                     name="phone"
                     value={form.phone}
                     className="border border-gray-300 dark:border-gray-600 
-                     bg-white dark:bg-gray-700 
-                     text-black dark:text-white 
-                     p-2 w-full mb-3 rounded"
+                               bg-white dark:bg-gray-700 
+                               text-black dark:text-white 
+                               p-2 w-full mb-3 rounded"
+                    onChange={handleChange}
+                />
+
+                <label className="block mb-2">Posisi</label>
+                <input
+                    name="position"
+                    value={form.position || ""}
+                    className="border border-gray-300 dark:border-gray-600 
+                               bg-white dark:bg-gray-700 
+                               text-black dark:text-white 
+                               p-2 w-full mb-3 rounded"
                     onChange={handleChange}
                 />
 

@@ -9,58 +9,86 @@ export default function EditPayment() {
 
     const [form, setForm] = useState({
         amount_paid: "",
-        method: "",
+        method: "cash",
     });
 
     useEffect(() => {
         async function loadData() {
-            const { data } = await supabase.from("payments").select("*").eq("id", id).single();
-            if (data) setForm(data);
+            const { data, error } = await supabase
+                .from("payments")
+                .select("*")
+                .eq("id", id)
+                .single();
+
+            if (error) {
+                console.error(error);
+                alert("Gagal memuat data pembayaran");
+                return;
+            }
+
+            setForm({
+                amount_paid: data.amount_paid,
+                method: data.method, // 'cash' / 'transfer'
+            });
         }
         loadData();
     }, [id]);
 
     function handleChange(e) {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }));
     }
 
     async function handleSubmit(e) {
         e.preventDefault();
-        const { error } = await supabase.from("payments").update(form).eq("id", id);
-        if (error) alert(error.message);
-        else navigate("/payments");
+        const { error } = await supabase
+            .from("payments")
+            .update({
+                amount_paid: Number(form.amount_paid) || 0,
+                method: form.method,
+            })
+            .eq("id", id);
+
+        if (error) {
+            alert(error.message);
+        } else {
+            navigate("/app/payments");
+        }
     }
 
     return (
         <LayoutWrapper>
-            <h1 className="text-xl font-semibold mb-4 text-black dark:text-white">Edit Pembayaran</h1>
+            <h1 className="text-xl font-semibold mb-4 text-black dark:text-white">
+                Edit Pembayaran
+            </h1>
 
             <form
                 className="bg-white dark:bg-gray-800 text-black dark:text-white
-                   p-4 rounded shadow w-full md:w-1/2"
+                           p-4 rounded shadow w-full md:w-1/2"
                 onSubmit={handleSubmit}
             >
                 <label className="block mb-2">Jumlah Bayar (Rp)</label>
                 <input
                     name="amount_paid"
+                    type="number"
                     value={form.amount_paid}
-                    className="border border-gray-300 dark:border-gray-600 
-                     bg-white dark:bg-gray-700 text-black dark:text-white
-                     p-2 w-full mb-3 rounded"
                     onChange={handleChange}
+                    className="border border-gray-300 dark:border-gray-600 
+                               bg-white dark:bg-gray-700 text-black dark:text-white
+                               p-2 w-full mb-3 rounded"
                 />
 
                 <label className="block mb-2">Metode Pembayaran</label>
                 <select
                     name="method"
                     value={form.method}
-                    className="border border-gray-300 dark:border-gray-600
-                     bg-white dark:bg-gray-700 text-black dark:text-white
-                     p-2 w-full mb-3 rounded"
                     onChange={handleChange}
+                    className="border border-gray-300 dark:border-gray-600 
+                               bg-white dark:bg-gray-700 text-black dark:text-white
+                               p-2 w-full mb-3 rounded"
                 >
-                    <option value="Tunai">Tunai</option>
-                    <option value="QRIS">QRIS</option>
+                    <option value="cash">Tunai</option>
+                    <option value="transfer">QRIS</option>
                 </select>
 
                 <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">

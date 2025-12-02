@@ -1,5 +1,4 @@
 import { useState } from "react";
-import LayoutWrapper from "../../components/layout/LayoutWrapper";
 import OrderReport from "./OrderReport";
 import PaymentReport from "./PaymentReport";
 
@@ -7,7 +6,7 @@ export default function ExportReports() {
     const [tab, setTab] = useState("orders");
 
     return (
-        <LayoutWrapper>
+        <div>
             <h1 className="text-xl font-semibold mb-6 text-black dark:text-white">
                 Laporan & Export
             </h1>
@@ -36,6 +35,6 @@ export default function ExportReports() {
 
             {tab === "orders" && <OrderReport />}
             {tab === "payments" && <PaymentReport />}
-        </LayoutWrapper>
+        </div>
     );
 }

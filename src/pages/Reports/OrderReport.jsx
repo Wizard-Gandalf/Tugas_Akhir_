@@ -1,3 +1,4 @@
+// src/pages/Reports/OrderReport.jsx
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "../../api/supabaseClient";
@@ -19,31 +20,48 @@ export default function OrderReport() {
         let query = supabase
             .from("orders")
             .select(`
-                id, status, order_date, finish_date, total_price,
-                customers(name),
-                services(name)
-            `);
+                id,
+                customer_name,
+                status,
+                order_date,
+                total_price,
+                weight_kg,
+                services ( name )
+            `)
+            .order("id", { ascending: true });
 
-        if (filters.startDate)
+        if (filters.startDate) {
             query = query.gte("order_date", `${filters.startDate} 00:00:00`);
-        if (filters.endDate)
-            query = query.lte("order_date", `${filters.endDate} 23:59:59`);
-        if (filters.status)
-            query = query.eq("status", filters.status);
+        }
 
-        const { data } = await query;
+        if (filters.endDate) {
+            query = query.lte("order_date", `${filters.endDate} 23:59:59`);
+        }
+
+        if (filters.status) {
+            query = query.eq("status", filters.status);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error("OrderReport error:", error);
+            alert("Gagal memuat laporan pesanan");
+            return;
+        }
+
         setResults(data || []);
     }
 
     function exportToExcel() {
         const exportData = results.map((r) => ({
             ID: r.id,
-            Pelanggan: r.customers?.name,
+            Pelanggan: r.customer_name,
             Layanan: r.services?.name,
+            Berat_kg: r.weight_kg,
             Total: r.total_price,
             Status: r.status,
             Tanggal_Pesanan: r.order_date,
-            Tanggal_Selesai: r.finish_date,
         }));
 
         const ws = XLSX.utils.json_to_sheet(exportData);
@@ -54,9 +72,9 @@ export default function OrderReport() {
 
     return (
         <div className="text-black dark:text-white">
-
             <h2 className="text-lg font-semibold mb-4">Laporan Pesanan</h2>
 
+            {/* Filter */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                     <label>Tanggal Mulai</label>
@@ -114,11 +132,13 @@ export default function OrderReport() {
                 Export Excel
             </button>
 
+            {/* Tabel */}
             <table className="mt-6 w-full bg-white dark:bg-gray-900 text-black dark:text-white shadow rounded">
                 <thead className="bg-gray-200 dark:bg-gray-700">
                     <tr>
                         <th className="p-2 border">Pelanggan</th>
                         <th className="p-2 border">Layanan</th>
+                        <th className="p-2 border">Berat</th>
                         <th className="p-2 border">Total</th>
                         <th className="p-2 border">Status</th>
                         <th className="p-2 border">Tanggal</th>
@@ -128,17 +148,22 @@ export default function OrderReport() {
                 <tbody>
                     {results.map((r) => (
                         <tr key={r.id} className="odd:bg-gray-50 dark:odd:bg-gray-800">
-                            <td className="p-2 border">{r.customers?.name}</td>
+                            <td className="p-2 border">{r.customer_name}</td>
                             <td className="p-2 border">{r.services?.name}</td>
-                            <td className="p-2 border">Rp {r.total_price.toLocaleString()}</td>
+                            <td className="p-2 border">{r.weight_kg} Kg</td>
+                            <td className="p-2 border">
+                                Rp {Number(r.total_price || 0).toLocaleString()}
+                            </td>
                             <td className="p-2 border">{r.status}</td>
-                            <td className="p-2 border">{r.order_date?.slice(0, 10)}</td>
+                            <td className="p-2 border">
+                                {r.order_date ? r.order_date.slice(0, 10) : "-"}
+                            </td>
                         </tr>
                     ))}
 
                     {results.length === 0 && (
                         <tr>
-                            <td colSpan="5" className="text-center p-3">
+                            <td colSpan="6" className="text-center p-3">
                                 Tidak ada data
                             </td>
                         </tr>

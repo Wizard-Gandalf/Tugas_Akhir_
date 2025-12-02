@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../api/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import LayoutWrapper from "../../components/layout/LayoutWrapper";
 
 export default function AddOrder() {
     const navigate = useNavigate();
-    const [customers, setCustomers] = useState([]);
     const [staff, setStaff] = useState([]);
     const [services, setServices] = useState([]);
 
     const [form, setForm] = useState({
-        customer_id: "",
+        customer_name: "",
+        customer_phone: "",
         service_id: "",
         staff_id: "",
-        weight: "",
+        weight_kg: "",
     });
 
     function handleChange(e) {
@@ -21,11 +21,9 @@ export default function AddOrder() {
     }
 
     async function loadData() {
-        const { data: cust } = await supabase.from("customers").select("*");
         const { data: staffData } = await supabase.from("staff").select("*");
         const { data: serv } = await supabase.from("services").select("*");
 
-        setCustomers(cust || []);
         setStaff(staffData || []);
         setServices(serv || []);
     }
@@ -36,9 +34,50 @@ export default function AddOrder() {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        const { error } = await supabase.from("orders").insert(form);
-        if (error) alert(error.message);
-        else navigate("/orders");
+
+        if (!form.customer_name.trim()) {
+            alert("Nama pelanggan wajib diisi");
+            return;
+        }
+        if (!form.service_id || !form.staff_id) {
+            alert("Layanan dan petugas wajib dipilih");
+            return;
+        }
+
+        const weightNumber = parseFloat(
+            String(form.weight_kg).replace(",", ".")
+        );
+        if (Number.isNaN(weightNumber) || weightNumber <= 0) {
+            alert("Berat tidak valid");
+            return;
+        }
+
+        const service = services.find(
+            (s) => s.id === Number(form.service_id)
+        );
+        if (!service) {
+            alert("Layanan tidak ditemukan");
+            return;
+        }
+
+        const totalPrice = Math.round(service.price * weightNumber);
+
+        const payload = {
+            customer_name: form.customer_name.trim(),
+            customer_phone: form.customer_phone.trim() || null,
+            service_id: Number(form.service_id),
+            staff_id: Number(form.staff_id),
+            weight_kg: weightNumber,
+            total_price: totalPrice,
+            status: "pending",
+        };
+
+        const { error } = await supabase.from("orders").insert(payload);
+        if (error) {
+            alert(error.message);
+        } else {
+            navigate("/app/orders");
+        }
     }
 
     return (
@@ -49,37 +88,47 @@ export default function AddOrder() {
 
             <form
                 className="bg-white dark:bg-gray-800 text-black dark:text-white 
-                   p-4 rounded shadow w-full md:w-1/2"
+                           p-4 rounded shadow w-full md:w-1/2"
                 onSubmit={handleSubmit}
             >
-                <label className="block mb-2">Pelanggan</label>
-                <select
-                    name="customer_id"
+                {/* Nama Pelanggan bebas */}
+                <label className="block mb-2">Nama Pelanggan</label>
+                <input
+                    name="customer_name"
                     className="border border-gray-300 dark:border-gray-600
-                     bg-white dark:bg-gray-700 text-black dark:text-white
-                     p-2 w-full mb-3 rounded"
+                               bg-white dark:bg-gray-700 text-black dark:text-white
+                               p-2 w-full mb-3 rounded"
+                    value={form.customer_name}
                     onChange={handleChange}
-                >
-                    <option>Pilih pelanggan</option>
-                    {customers.map((c) => (
-                        <option key={c.id} value={c.id}>
-                            {c.name}
-                        </option>
-                    ))}
-                </select>
+                    placeholder="contoh: Budi"
+                />
+
+                <label className="block mb-2">
+                    No. Telepon <span className="text-sm text-gray-400">(opsional)</span>
+                </label>
+                <input
+                    name="customer_phone"
+                    className="border border-gray-300 dark:border-gray-600
+                               bg-white dark:bg-gray-700 text-black dark:text-white
+                               p-2 w-full mb-3 rounded"
+                    value={form.customer_phone}
+                    onChange={handleChange}
+                    placeholder="contoh: 08xxxx"
+                />
 
                 <label className="block mb-2">Layanan</label>
                 <select
                     name="service_id"
                     className="border border-gray-300 dark:border-gray-600
-                     bg-white dark:bg-gray-700 text-black dark:text-white
-                     p-2 w-full mb-3 rounded"
+                               bg-white dark:bg-gray-700 text-black dark:text-white
+                               p-2 w-full mb-3 rounded"
+                    value={form.service_id}
                     onChange={handleChange}
                 >
-                    <option>Pilih layanan</option>
+                    <option value="">Pilih layanan</option>
                     {services.map((s) => (
                         <option key={s.id} value={s.id}>
-                            {s.name}
+                            {s.name} (Rp {s.price.toLocaleString()} /kg)
                         </option>
                     ))}
                 </select>
@@ -88,11 +137,12 @@ export default function AddOrder() {
                 <select
                     name="staff_id"
                     className="border border-gray-300 dark:border-gray-600
-                     bg-white dark:bg-gray-700 text-black dark:text-white
-                     p-2 w-full mb-3 rounded"
+                               bg-white dark:bg-gray-700 text-black dark:text-white
+                               p-2 w-full mb-3 rounded"
+                    value={form.staff_id}
                     onChange={handleChange}
                 >
-                    <option>Pilih petugas</option>
+                    <option value="">Pilih petugas</option>
                     {staff.map((st) => (
                         <option key={st.id} value={st.id}>
                             {st.name}
@@ -102,11 +152,13 @@ export default function AddOrder() {
 
                 <label className="block mb-2">Berat (kg)</label>
                 <input
-                    name="weight"
+                    name="weight_kg"
                     className="border border-gray-300 dark:border-gray-600 
-                     bg-white dark:bg-gray-700 text-black dark:text-white 
-                     p-2 w-full mb-3 rounded"
+                               bg-white dark:bg-gray-700 text-black dark:text-white 
+                               p-2 w-full mb-3 rounded"
+                    value={form.weight_kg}
                     onChange={handleChange}
+                    placeholder="contoh: 0.5 atau 2"
                 />
 
                 <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">

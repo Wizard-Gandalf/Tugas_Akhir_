@@ -1,185 +1,94 @@
-import { Routes, Route } from "react-router-dom";
+// src/routes/AppRoutes.jsx
+import { Routes, Route, Outlet } from "react-router-dom";
+
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import PrivateRoute from "./PrivateRoute";
+import AddAdmin from "../pages/Auth/AddAdmin";
 
-import CustomersList from "../pages/Customers/CustomersList";
-import AddCustomer from "../pages/Customers/AddCustomer";
-import EditCustomer from "../pages/Customers/EditCustomer";
+import Navbar from "../components/layout/Navbar.jsx";
 
-import StaffList from "../pages/Staff/StaffList";
-import AddStaff from "../pages/Staff/AddStaff";
-import EditStaff from "../pages/Staff/EditStaff";
+import StaffList from "../pages/Staff/StaffList.jsx";
+import AddStaff from "../pages/Staff/AddStaff.jsx";
+import EditStaff from "../pages/Staff/EditStaff.jsx";
 
-import ServicesList from "../pages/Services/ServicesList";
-import AddService from "../pages/Services/AddService";
-import EditService from "../pages/Services/EditService";
+import ServicesList from "../pages/Services/ServicesList.jsx";
+import AddService from "../pages/Services/AddService.jsx";
+import EditService from "../pages/Services/EditService.jsx";
 
-import OrdersList from "../pages/Orders/OrdersList";
-import AddOrder from "../pages/Orders/AddOrder";
-import EditOrder from "../pages/Orders/EditOrder";
+import OrdersList from "../pages/Orders/OrdersList.jsx";
+import AddOrder from "../pages/Orders/AddOrder.jsx";
+import EditOrder from "../pages/Orders/EditOrder.jsx";
 
-import PaymentsList from "../pages/Payments/PaymentsList";
-import AddPayment from "../pages/Payments/AddPayment";
-import EditPayment from "../pages/Payments/EditPayment";
+import PaymentsList from "../pages/Payments/PaymentsList.jsx";
+import AddPayment from "../pages/Payments/AddPayment.jsx";
+import EditPayment from "../pages/Payments/EditPayment.jsx";
+import PaymentReceipt from "../pages/Payments/PaymentReceipt.jsx";
 
-import ExportReports from "../pages/Reports/ExportReport";
+import ExportReports from "../pages/Reports/ExportReport.jsx";
+import About from "../pages/About.jsx";
+
+// Layout admin: Navbar di atas + konten halaman
+function AppLayout() {
+    return (
+        <>
+            <Navbar />
+            <div className="pt-20 px-4 pb-6">
+                <Outlet />
+            </div>
+        </>
+    );
+}
 
 export default function AppRoutes() {
     return (
         <Routes>
-            {/* Login tidak diproteksi */}
+            {/* Public routes */}
             <Route path="/" element={<Login />} />
+            <Route path="/add-admin" element={<AddAdmin />} />
 
-            {/* Dashboard */}
+            {/* Protected admin routes */}
             <Route
-                path="/dashboard"
+                path="/app"
                 element={
                     <PrivateRoute>
-                        <Dashboard />
+                        <AppLayout />
                     </PrivateRoute>
                 }
-            />
+            >
+                {/* Dashboard */}
+                <Route path="dashboard" element={<Dashboard />} />
 
-            {/* Customers */}
-            <Route
-                path="/customers"
-                element={
-                    <PrivateRoute>
-                        <CustomersList />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/customers/add"
-                element={
-                    <PrivateRoute>
-                        <AddCustomer />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/customers/edit/:id"
-                element={
-                    <PrivateRoute>
-                        <EditCustomer />
-                    </PrivateRoute>
-                }
-            />
+                {/* Petugas */}
+                <Route path="staff" element={<StaffList />} />
+                <Route path="staff/add" element={<AddStaff />} />
+                <Route path="staff/edit/:id" element={<EditStaff />} />
 
-            {/* Staff */}
-            <Route
-                path="/staff"
-                element={
-                    <PrivateRoute>
-                        <StaffList />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/staff/add"
-                element={
-                    <PrivateRoute>
-                        <AddStaff />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/staff/edit/:id"
-                element={
-                    <PrivateRoute>
-                        <EditStaff />
-                    </PrivateRoute>
-                }
-            />
+                {/* Layanan */}
+                <Route path="services" element={<ServicesList />} />
+                <Route path="services/add" element={<AddService />} />
+                <Route path="services/edit/:id" element={<EditService />} />
 
-            {/* Services */}
-            <Route
-                path="/services"
-                element={
-                    <PrivateRoute>
-                        <ServicesList />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/services/add"
-                element={
-                    <PrivateRoute>
-                        <AddService />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/services/edit/:id"
-                element={
-                    <PrivateRoute>
-                        <EditService />
-                    </PrivateRoute>
-                }
-            />
+                {/* Pesanan */}
+                <Route path="orders" element={<OrdersList />} />
+                <Route path="orders/add" element={<AddOrder />} />
+                <Route path="orders/edit/:id" element={<EditOrder />} />
 
-            {/* Orders */}
-            <Route
-                path="/orders"
-                element={
-                    <PrivateRoute>
-                        <OrdersList />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/orders/add"
-                element={
-                    <PrivateRoute>
-                        <AddOrder />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/orders/edit/:id"
-                element={
-                    <PrivateRoute>
-                        <EditOrder />
-                    </PrivateRoute>
-                }
-            />
+                {/* Pembayaran */}
+                <Route path="payments" element={<PaymentsList />} />
+                <Route path="payments/add" element={<AddPayment />} />
+                <Route path="payments/edit/:id" element={<EditPayment />} />
+                <Route
+                    path="payments/receipt/:id"
+                    element={<PaymentReceipt />}
+                />
 
-            {/* Payments */}
-            <Route
-                path="/payments"
-                element={
-                    <PrivateRoute>
-                        <PaymentsList />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/payments/add"
-                element={
-                    <PrivateRoute>
-                        <AddPayment />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/payments/edit/:id"
-                element={
-                    <PrivateRoute>
-                        <EditPayment />
-                    </PrivateRoute>
-                }
-            />
+                {/* Laporan */}
+                <Route path="reports" element={<ExportReports />} />
 
-            {/* Reports */}
-            <Route
-                path="/reports"
-                element={
-                    <PrivateRoute>
-                        <ExportReports />
-                    </PrivateRoute>
-                }
-            />
+                {/* About this web */}
+                <Route path="about" element={<About />} />
+            </Route>
         </Routes>
     );
 }

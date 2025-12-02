@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { supabase } from "../../api/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../../api/supabaseClient";
 import LayoutWrapper from "../../components/layout/LayoutWrapper";
 
 export default function AddService() {
@@ -8,6 +8,7 @@ export default function AddService() {
     const [form, setForm] = useState({
         name: "",
         price: "",
+        duration_hours: "",
     });
 
     function handleChange(e) {
@@ -16,11 +17,31 @@ export default function AddService() {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        if (!form.name.trim()) return alert("Nama layanan wajib diisi");
 
-        const { error } = await supabase.from("services").insert(form);
-        if (error) alert(error.message);
-        else navigate("/services");
+        if (!form.name.trim()) {
+            alert("Nama layanan wajib diisi");
+            return;
+        }
+        if (!form.price) {
+            alert("Harga wajib diisi");
+            return;
+        }
+
+        const payload = {
+            name: form.name.trim(),
+            price: parseInt(form.price, 10),
+            duration_hours: form.duration_hours
+                ? parseInt(form.duration_hours, 10)
+                : null,
+        };
+
+        const { error } = await supabase.from("services").insert(payload);
+
+        if (error) {
+            alert(error.message);
+        } else {
+            navigate("/app/services");
+        }
     }
 
     return (
@@ -30,31 +51,51 @@ export default function AddService() {
             </h1>
 
             <form
-                className="bg-white dark:bg-gray-800 p-4 rounded shadow w-full md:w-1/2 
-                   text-black dark:text-white"
                 onSubmit={handleSubmit}
+                className="bg-white dark:bg-gray-800 p-4 rounded shadow w-full md:w-1/2
+                           text-black dark:text-white"
             >
                 <label className="block mb-2">Nama Layanan</label>
                 <input
                     name="name"
-                    className="border border-gray-300 dark:border-gray-600 
-                     bg-white dark:bg-gray-700 
-                     text-black dark:text-white 
-                     p-2 w-full mb-3 rounded"
+                    value={form.name}
                     onChange={handleChange}
+                    className="border border-gray-300 dark:border-gray-600
+                               bg-white dark:bg-gray-700
+                               text-black dark:text-white
+                               p-2 w-full mb-3 rounded"
                 />
 
-                <label className="block mb-2">Harga</label>
+                <label className="block mb-2">Harga (Rp)</label>
                 <input
                     name="price"
-                    className="border border-gray-300 dark:border-gray-600 
-                     bg-white dark:bg-gray-700 
-                     text-black dark:text-white 
-                     p-2 w-full mb-3 rounded"
+                    type="number"
+                    value={form.price}
                     onChange={handleChange}
+                    className="border border-gray-300 dark:border-gray-600
+                               bg-white dark:bg-gray-700
+                               text-black dark:text-white
+                               p-2 w-full mb-3 rounded"
                 />
 
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                <label className="block mb-2">
+                    Durasi (Jam) <span className="text-sm text-gray-400">(opsional)</span>
+                </label>
+                <input
+                    name="duration_hours"
+                    type="number"
+                    value={form.duration_hours}
+                    onChange={handleChange}
+                    className="border border-gray-300 dark:border-gray-600
+                               bg-white dark:bg-gray-700
+                               text-black dark:text-white
+                               p-2 w-full mb-4 rounded"
+                />
+
+                <button
+                    type="submit"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                >
                     Simpan
                 </button>
             </form>

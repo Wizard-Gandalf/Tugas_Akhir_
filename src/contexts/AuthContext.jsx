@@ -5,30 +5,53 @@ export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [admin, setAdmin] = useState(null);
+    const [loading, setLoading] = useState(true);
 
+    // Saat pertama kali load, ambil admin dari localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem("admin");
+        if (saved) {
+            try {
+                setAdmin(JSON.parse(saved));
+            } catch {
+                setAdmin(null);
+            }
+        }
+        setLoading(false);
+    }, []);
+
+    // LOGIN ke tabel admins (username + password)
     async function login(username, password) {
         const { data, error } = await supabase
             .from("admins")
             .select("*")
             .eq("username", username)
-            .single();
+            .eq("password", password)
+            .maybeSingle();
 
-        if (error || !data) return { error: "Username tidak ditemukan" };
+        if (error) {
+            console.error(error);
+            // tampilkan pesan asli Supabase di layar
+            return { error: error.message };
+        }
 
-        // BCrypt recommended, tapi untuk praktikum kita pakai simple compare
-        if (password !== data.password_hash)
-            return { error: "Password salah" };
+        if (!data) {
+            return { error: "Username atau password salah" };
+        }
 
         setAdmin(data);
-        return { success: true };
+        localStorage.setItem("admin", JSON.stringify(data));
+        return { user: data };
     }
 
+    // LOGOUT
     function logout() {
         setAdmin(null);
+        localStorage.removeItem("admin");
     }
 
     return (
-        <AuthContext.Provider value={{ admin, login, logout }}>
+        <AuthContext.Provider value={{ admin, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

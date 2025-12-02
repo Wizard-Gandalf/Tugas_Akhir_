@@ -1,3 +1,4 @@
+// src/pages/Reports/PaymentReport.jsx
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "../../api/supabaseClient";
@@ -20,36 +21,56 @@ export default function PaymentReport() {
         let query = supabase
             .from("payments")
             .select(`
-                id, amount_paid, remaining_amount, method, status, payment_date,
+                id,
+                amount_paid,
+                method,
+                status,
+                payment_date,
                 orders (
                     id,
+                    customer_name,
                     total_price,
-                    customers (name)
+                    services ( name )
                 )
-            `);
+            `)
 
-        if (filters.startDate)
+            .order("id", { ascending: true });
+
+        if (filters.startDate) {
             query = query.gte("payment_date", `${filters.startDate} 00:00:00`);
+        }
 
-        if (filters.endDate)
+        if (filters.endDate) {
             query = query.lte("payment_date", `${filters.endDate} 23:59:59`);
+        }
 
-        if (filters.method) query = query.eq("method", filters.method);
-        if (filters.status) query = query.eq("status", filters.status);
+        if (filters.method) {
+            query = query.eq("method", filters.method);
+        }
 
-        const { data } = await query;
+        if (filters.status) {
+            query = query.eq("status", filters.status);
+        }
+
+        const { data, error } = await query;
+        if (error) {
+            console.error(error);
+            alert("Gagal memuat laporan pembayaran");
+            return;
+        }
+
         setResults(data || []);
     }
 
     function exportToExcel() {
         const exportData = results.map((r) => ({
             ID: r.id,
-            Pelanggan: r.orders?.customers?.name,
+            Pelanggan: r.orders?.customer_name,
+            Layanan: r.orders?.services?.name,
             Total_Tagihan: r.orders?.total_price,
             Dibayar: r.amount_paid,
-            Sisa: r.remaining_amount,
-            Metode: r.method,
-            Status: r.status,
+            Metode: r.method,          // disimpan sebagai cash / transfer
+            Status: r.status,          // pending / selesai
             Tanggal: r.payment_date,
         }));
 
@@ -59,11 +80,23 @@ export default function PaymentReport() {
         XLSX.writeFile(wb, "laporan_pembayaran.xlsx");
     }
 
+    function renderMethodLabel(method) {
+        if (method === "cash") return "Tunai";
+        if (method === "transfer") return "QRIS";
+        return method || "-";
+    }
+
+    function renderStatusLabel(status) {
+        if (status === "selesai") return "Lunas";
+        if (status === "pending") return "Pending";
+        return status || "-";
+    }
+
     return (
         <div className="text-black dark:text-white">
-
             <h2 className="text-lg font-semibold mb-4">Laporan Pembayaran</h2>
 
+            {/* Filter */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div>
                     <label>Tanggal Mulai</label>
@@ -96,8 +129,9 @@ export default function PaymentReport() {
                         onChange={handleChange}
                     >
                         <option value="">Semua</option>
-                        <option value="cash">Cash</option>
-                        <option value="transfer">Transfer</option>
+                        {/* value = enum di DB, label = yang tampil */}
+                        <option value="cash">Tunai</option>
+                        <option value="transfer">QRIS</option>
                     </select>
                 </div>
 
@@ -130,13 +164,14 @@ export default function PaymentReport() {
                 Export Excel
             </button>
 
+            {/* Tabel */}
             <table className="mt-6 w-full bg-white dark:bg-gray-900 text-black dark:text-white shadow rounded">
                 <thead className="bg-gray-200 dark:bg-gray-700">
                     <tr>
                         <th className="p-2 border">Pelanggan</th>
-                        <th className="p-2 border">Total</th>
+                        <th className="p-2 border">Layanan</th>
+                        <th className="p-2 border">Total Tagihan</th>
                         <th className="p-2 border">Dibayar</th>
-                        <th className="p-2 border">Sisa</th>
                         <th className="p-2 border">Metode</th>
                         <th className="p-2 border">Status</th>
                         <th className="p-2 border">Tanggal</th>
@@ -146,17 +181,30 @@ export default function PaymentReport() {
                 <tbody>
                     {results.map((r) => (
                         <tr key={r.id} className="odd:bg-gray-50 dark:odd:bg-gray-800">
-                            <td className="p-2 border">{r.orders?.customers?.name}</td>
-                            <td className="p-2 border">Rp {r.orders?.total_price?.toLocaleString()}</td>
-                            <td className="p-2 border">Rp {r.amount_paid.toLocaleString()}</td>
                             <td className="p-2 border">
-                                {r.remaining_amount === 0
-                                    ? "Lunas"
-                                    : "Rp " + r.remaining_amount.toLocaleString()}
+                                {r.orders?.customer_name}
                             </td>
-                            <td className="p-2 border">{r.method}</td>
-                            <td className="p-2 border">{r.status}</td>
-                            <td className="p-2 border">{r.payment_date?.slice(0, 10)}</td>
+                            <td className="p-2 border">
+                                {r.orders?.services?.name}
+                            </td>
+                            <td className="p-2 border">
+                                Rp{" "}
+                                {r.orders?.total_price
+                                    ? Number(r.orders.total_price).toLocaleString()
+                                    : 0}
+                            </td>
+                            <td className="p-2 border">
+                                Rp {Number(r.amount_paid || 0).toLocaleString()}
+                            </td>
+                            <td className="p-2 border">
+                                {renderMethodLabel(r.method)}
+                            </td>
+                            <td className="p-2 border">
+                                {renderStatusLabel(r.status)}
+                            </td>
+                            <td className="p-2 border">
+                                {r.payment_date ? r.payment_date.slice(0, 10) : "-"}
+                            </td>
                         </tr>
                     ))}
 

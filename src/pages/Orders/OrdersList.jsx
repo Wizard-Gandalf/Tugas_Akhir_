@@ -1,3 +1,4 @@
+// src/pages/Orders/OrdersList.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../../api/supabaseClient";
 import { useNavigate } from "react-router-dom";
@@ -12,18 +13,26 @@ export default function OrdersList() {
     }, []);
 
     async function loadOrders() {
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from("orders")
             .select(`
-        id,
-        weight_kg,
-        total_price,
-        status,
-        order_date,
-        customers(name),
-        services(name),
-        staff(name)
-      `);
+            id,
+            customer_name,
+            weight_kg,
+            total_price,
+            status,
+            order_date,
+            services (name),
+            staff (name)
+        `)
+            .order("id", { ascending: true });
+
+
+        if (error) {
+            console.error(error);
+            alert("Gagal memuat data pesanan");
+            return;
+        }
 
         setOrders(data || []);
     }
@@ -31,13 +40,29 @@ export default function OrdersList() {
     async function deleteOrder(id) {
         if (!confirm("Hapus pesanan ini?")) return;
 
-        await supabase.from("orders").delete().eq("id", id);
-        loadOrders();
+        const { error } = await supabase
+            .from("orders")
+            .delete()
+            .eq("id", id);
+
+        if (error) {
+            alert(error.message);
+        } else {
+            loadOrders();
+        }
     }
 
     async function updateStatus(id, newStatus) {
-        await supabase.from("orders").update({ status: newStatus }).eq("id", id);
-        loadOrders();
+        const { error } = await supabase
+            .from("orders")
+            .update({ status: newStatus })
+            .eq("id", id);
+
+        if (error) {
+            alert(error.message);
+        } else {
+            loadOrders();
+        }
     }
 
     function statusButton(order) {
@@ -45,11 +70,32 @@ export default function OrdersList() {
         const currentIdx = sequence.indexOf(order.status);
         const next = sequence[currentIdx + 1];
 
-        if (!next) return null;
+        const baseClass =
+            "inline-block px-3 py-1 rounded text-white text-sm";
+        const colorByStatus = {
+            pending: "bg-yellow-500",
+            proses: "bg-blue-500",
+            selesai: "bg-green-600",
+            diambil: "bg-gray-500",
+        };
 
+        // kalau sudah status terakhir → hanya badge, tidak bisa diklik
+        if (!next) {
+            return (
+                <span
+                    className={`${baseClass} ${colorByStatus[order.status] || "bg-gray-500"
+                        }`}
+                >
+                    {order.status}
+                </span>
+            );
+        }
+
+        // status masih bisa naik → tombol
         return (
             <button
-                className="bg-green-600 text-white px-3 py-1 rounded"
+                className={`${baseClass} ${colorByStatus[order.status] || "bg-green-600"
+                    }`}
                 onClick={() => updateStatus(order.id, next)}
             >
                 {order.status} → {next}
@@ -60,17 +106,19 @@ export default function OrdersList() {
     return (
         <LayoutWrapper>
             <div className="flex justify-between mb-4">
-                <h1 className="text-xl font-semibold">Data Pesanan</h1>
+                <h1 className="text-xl font-semibold text-black dark:text-white">
+                    Data Pesanan
+                </h1>
                 <button
                     className="bg-blue-600 text-white px-4 py-2 rounded"
-                    onClick={() => navigate("/orders/add")}
+                    onClick={() => navigate("/app/orders/add")}
                 >
                     + Tambah Pesanan
                 </button>
             </div>
 
-            <table className="w-full bg-white shadow rounded overflow-hidden">
-                <thead className="bg-gray-200">
+            <table className="w-full bg-white dark:bg-gray-800 shadow rounded overflow-hidden text-black dark:text-white">
+                <thead className="bg-gray-200 dark:bg-gray-700">
                     <tr>
                         <th className="p-2 border">Pelanggan</th>
                         <th className="p-2 border">Layanan</th>
@@ -84,21 +132,25 @@ export default function OrdersList() {
 
                 <tbody>
                     {orders.map((o) => (
-                        <tr key={o.id}>
-                            <td className="border p-2">{o.customers?.name}</td>
+                        <tr key={o.id} className="odd:bg-gray-50 dark:odd:bg-gray-900">
+                            <td className="border p-2">{o.customer_name}</td>
                             <td className="border p-2">{o.services?.name}</td>
                             <td className="border p-2">{o.staff?.name}</td>
+
                             <td className="border p-2">{o.weight_kg} Kg</td>
-                            <td className="border p-2">Rp {parseInt(o.total_price).toLocaleString()}</td>
+                            <td className="border p-2">
+                                Rp {parseInt(o.total_price).toLocaleString()}
+                            </td>
                             <td className="border p-2 text-center">
-                                {o.status}
-                                <div className="mt-2">{statusButton(o)}</div>
+                                {statusButton(o)}
                             </td>
 
                             <td className="border p-2 flex gap-2">
                                 <button
                                     className="bg-yellow-500 text-white px-3 py-1 rounded"
-                                    onClick={() => navigate(`/orders/edit/${o.id}`)}
+                                    onClick={() =>
+                                        navigate(`/app/orders/edit/${o.id}`)
+                                    }
                                 >
                                     Edit
                                 </button>
@@ -115,7 +167,10 @@ export default function OrdersList() {
 
                     {orders.length === 0 && (
                         <tr>
-                            <td colSpan="7" className="text-center p-3">
+                            <td
+                                colSpan="7"
+                                className="text-center p-3 text-gray-600 dark:text-gray-300"
+                            >
                                 Tidak ada pesanan
                             </td>
                         </tr>
