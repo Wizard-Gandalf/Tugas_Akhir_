@@ -139,8 +139,6 @@ export default function PaymentReceipt() {
         doc.text("Dibayar       :", 14, finalY);
         doc.text(formatRupiah(payment.amount_paid), 60, finalY);
 
-
-
         finalY += 8;
         doc.text(
             `Status : ${renderStatusLabel(payment.status)} | Metode : ${renderMethodLabel(
