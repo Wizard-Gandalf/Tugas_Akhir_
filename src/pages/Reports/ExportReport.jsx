@@ -6,17 +6,21 @@ export default function ExportReports() {
     const [tab, setTab] = useState("orders");
 
     return (
-        <div>
-            <h1 className="text-xl font-semibold mb-6 text-black dark:text-white">
+        <div className="text-white">
+            <h1 className="text-xl sm:text-2xl font-semibold mb-2">
                 Laporan & Export
             </h1>
+            <p className="text-xs sm:text-sm text-gray-400 mb-4">
+                Lihat dan ekspor laporan pesanan serta pembayaran dalam bentuk Excel.
+            </p>
 
-            <div className="flex gap-4 mb-6">
+            {/* Tab pilihan laporan */}
+            <div className="inline-flex items-center rounded-xl bg-slate-800/60 p-1 gap-1 mb-6">
                 <button
                     onClick={() => setTab("orders")}
-                    className={`px-4 py-2 rounded ${tab === "orders"
+                    className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${tab === "orders"
                             ? "bg-blue-600 text-white"
-                            : "bg-gray-300 dark:bg-gray-700 dark:text-white"
+                            : "text-gray-300 hover:bg-slate-700/70"
                         }`}
                 >
                     Laporan Pesanan
@@ -24,9 +28,9 @@ export default function ExportReports() {
 
                 <button
                     onClick={() => setTab("payments")}
-                    className={`px-4 py-2 rounded ${tab === "payments"
+                    className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${tab === "payments"
                             ? "bg-blue-600 text-white"
-                            : "bg-gray-300 dark:bg-gray-700 dark:text-white"
+                            : "text-gray-300 hover:bg-slate-700/70"
                         }`}
                 >
                     Laporan Pembayaran

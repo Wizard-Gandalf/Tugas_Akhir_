@@ -16,17 +16,16 @@ export default function OrdersList() {
         const { data, error } = await supabase
             .from("orders")
             .select(`
-            id,
-            customer_name,
-            weight_kg,
-            total_price,
-            status,
-            order_date,
-            services (name),
-            staff (name)
-        `)
+                id,
+                customer_name,
+                weight_kg,
+                total_price,
+                status,
+                order_date,
+                services (name),
+                staff (name)
+            `)
             .order("id", { ascending: true });
-
 
         if (error) {
             console.error(error);
@@ -71,7 +70,7 @@ export default function OrdersList() {
         const next = sequence[currentIdx + 1];
 
         const baseClass =
-            "inline-block px-3 py-1 rounded text-white text-sm";
+            "inline-flex items-center justify-center px-3 py-1 rounded-md text-[11px] font-medium text-white";
         const colorByStatus = {
             pending: "bg-yellow-500",
             proses: "bg-blue-500",
@@ -79,7 +78,7 @@ export default function OrdersList() {
             diambil: "bg-gray-500",
         };
 
-        // kalau sudah status terakhir → hanya badge, tidak bisa diklik
+        // kalau sudah status terakhir → hanya badge
         if (!next) {
             return (
                 <span
@@ -105,78 +104,112 @@ export default function OrdersList() {
 
     return (
         <LayoutWrapper>
-            <div className="flex justify-between mb-4">
-                <h1 className="text-xl font-semibold text-black dark:text-white">
-                    Data Pesanan
-                </h1>
+            {/* Header judul + tombol */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div>
+                    <h1 className="text-xl sm:text-2xl font-semibold text-white">
+                        Data Pesanan
+                    </h1>
+                    <p className="text-xs sm:text-sm text-gray-400">
+                        Daftar pesanan laundry beserta status dan total pembayaran.
+                    </p>
+                </div>
+
                 <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded"
+                    className="self-start sm:self-auto bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
                     onClick={() => navigate("/app/orders/add")}
                 >
                     + Tambah Pesanan
                 </button>
             </div>
 
-            <table className="w-full bg-white dark:bg-gray-800 shadow rounded overflow-hidden text-black dark:text-white">
-                <thead className="bg-gray-200 dark:bg-gray-700">
-                    <tr>
-                        <th className="p-2 border">Pelanggan</th>
-                        <th className="p-2 border">Layanan</th>
-                        <th className="p-2 border">Petugas</th>
-                        <th className="p-2 border">Berat</th>
-                        <th className="p-2 border">Total</th>
-                        <th className="p-2 border">Status</th>
-                        <th className="p-2 border">Aksi</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {orders.map((o) => (
-                        <tr key={o.id} className="odd:bg-gray-50 dark:odd:bg-gray-900">
-                            <td className="border p-2">{o.customer_name}</td>
-                            <td className="border p-2">{o.services?.name}</td>
-                            <td className="border p-2">{o.staff?.name}</td>
-
-                            <td className="border p-2">{o.weight_kg} Kg</td>
-                            <td className="border p-2">
-                                Rp {parseInt(o.total_price).toLocaleString()}
-                            </td>
-                            <td className="border p-2 text-center">
-                                {statusButton(o)}
-                            </td>
-
-                            <td className="border p-2 flex gap-2">
-                                <button
-                                    className="bg-yellow-500 text-white px-3 py-1 rounded"
-                                    onClick={() =>
-                                        navigate(`/app/orders/edit/${o.id}`)
-                                    }
-                                >
-                                    Edit
-                                </button>
-
-                                <button
-                                    className="bg-red-500 text-white px-3 py-1 rounded"
-                                    onClick={() => deleteOrder(o.id)}
-                                >
-                                    Hapus
-                                </button>
-                            </td>
+            {/* Tabel responsif */}
+            <div className="overflow-x-auto rounded-xl border border-slate-800">
+                <table className="min-w-full text-xs sm:text-sm border-collapse bg-slate-900 text-white">
+                    <thead className="bg-slate-900/80">
+                        <tr className="text-left text-gray-300">
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 border-b border-slate-800">
+                                Pelanggan
+                            </th>
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 border-b border-slate-800">
+                                Layanan
+                            </th>
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 border-b border-slate-800">
+                                Petugas
+                            </th>
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 border-b border-slate-800 whitespace-nowrap">
+                                Berat
+                            </th>
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 border-b border-slate-800 whitespace-nowrap">
+                                Total
+                            </th>
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 border-b border-slate-800">
+                                Status
+                            </th>
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 border-b border-slate-800 text-center">
+                                Aksi
+                            </th>
                         </tr>
-                    ))}
+                    </thead>
 
-                    {orders.length === 0 && (
-                        <tr>
-                            <td
-                                colSpan="7"
-                                className="text-center p-3 text-gray-600 dark:text-gray-300"
+                    <tbody>
+                        {orders.map((o) => (
+                            <tr
+                                key={o.id}
+                                className="border-b border-slate-800 hover:bg-slate-900/60"
                             >
-                                Tidak ada pesanan
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 align-middle">
+                                    {o.customer_name}
+                                </td>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 align-middle">
+                                    {o.services?.name}
+                                </td>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 align-middle">
+                                    {o.staff?.name}
+                                </td>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 align-middle whitespace-nowrap">
+                                    {o.weight_kg} Kg
+                                </td>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 align-middle whitespace-nowrap">
+                                    Rp {parseInt(o.total_price).toLocaleString()}
+                                </td>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 align-middle text-center">
+                                    {statusButton(o)}
+                                </td>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 align-middle">
+                                    <div className="flex gap-2 justify-center">
+                                        <button
+                                            className="bg-yellow-500 hover:bg-yellow-600 text-black text-xs sm:text-sm px-3 py-1.5 rounded-md font-medium"
+                                            onClick={() =>
+                                                navigate(`/app/orders/edit/${o.id}`)
+                                            }
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm px-3 py-1.5 rounded-md font-medium"
+                                            onClick={() => deleteOrder(o.id)}
+                                        >
+                                            Hapus
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+
+                        {orders.length === 0 && (
+                            <tr>
+                                <td
+                                    colSpan={7}
+                                    className="px-4 py-6 text-center text-sm text-gray-400"
+                                >
+                                    Tidak ada pesanan
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </LayoutWrapper>
     );
 }

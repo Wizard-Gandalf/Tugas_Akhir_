@@ -33,7 +33,6 @@ export default function PaymentReport() {
                     services ( name )
                 )
             `)
-
             .order("id", { ascending: true });
 
         if (filters.startDate) {
@@ -69,8 +68,8 @@ export default function PaymentReport() {
             Layanan: r.orders?.services?.name,
             Total_Tagihan: r.orders?.total_price,
             Dibayar: r.amount_paid,
-            Metode: r.method,          // disimpan sebagai cash / transfer
-            Status: r.status,          // pending / selesai
+            Metode: r.method, // disimpan sebagai cash / transfer
+            Status: r.status, // pending / selesai
             Tanggal: r.payment_date,
         }));
 
@@ -93,54 +92,67 @@ export default function PaymentReport() {
     }
 
     return (
-        <div className="text-black dark:text-white">
-            <h2 className="text-lg font-semibold mb-4">Laporan Pembayaran</h2>
+        <div className="text-white">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4">
+                Laporan Pembayaran
+            </h2>
 
             {/* Filter */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div>
-                    <label>Tanggal Mulai</label>
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs sm:text-sm text-gray-300">
+                        Tanggal Mulai
+                    </label>
                     <input
                         type="date"
                         name="startDate"
-                        className="border p-2 w-full rounded 
-                               dark:border-gray-600 bg-white dark:bg-gray-800"
+                        className="border rounded-md px-3 py-2 text-sm w-full
+                                   bg-slate-900 border-slate-700
+                                   focus:outline-none focus:ring-2 focus:ring-blue-600"
                         onChange={handleChange}
                     />
                 </div>
 
-                <div>
-                    <label>Tanggal Akhir</label>
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs sm:text-sm text-gray-300">
+                        Tanggal Akhir
+                    </label>
                     <input
                         type="date"
                         name="endDate"
-                        className="border p-2 w-full rounded 
-                               dark:border-gray-600 bg-white dark:bg-gray-800"
+                        className="border rounded-md px-3 py-2 text-sm w-full
+                                   bg-slate-900 border-slate-700
+                                   focus:outline-none focus:ring-2 focus:ring-blue-600"
                         onChange={handleChange}
                     />
                 </div>
 
-                <div>
-                    <label>Metode Pembayaran</label>
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs sm:text-sm text-gray-300">
+                        Metode Pembayaran
+                    </label>
                     <select
                         name="method"
-                        className="border p-2 w-full rounded 
-                               dark:border-gray-600 bg-white dark:bg-gray-800"
+                        className="border rounded-md px-3 py-2 text-sm w-full
+                                   bg-slate-900 border-slate-700
+                                   focus:outline-none focus:ring-2 focus:ring-blue-600"
                         onChange={handleChange}
                     >
                         <option value="">Semua</option>
-                        {/* value = enum di DB, label = yang tampil */}
                         <option value="cash">Tunai</option>
                         <option value="transfer">QRIS</option>
                     </select>
                 </div>
 
-                <div>
-                    <label>Status</label>
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs sm:text-sm text-gray-300">
+                        Status
+                    </label>
                     <select
                         name="status"
-                        className="border p-2 w-full rounded 
-                               dark:border-gray-600 bg-white dark:bg-gray-800"
+                        className="border rounded-md px-3 py-2 text-sm w-full
+                                   bg-slate-900 border-slate-700
+                                   focus:outline-none focus:ring-2 focus:ring-blue-600"
                         onChange={handleChange}
                     >
                         <option value="">Semua</option>
@@ -150,73 +162,103 @@ export default function PaymentReport() {
                 </div>
             </div>
 
-            <button
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mr-2"
-                onClick={loadData}
-            >
-                Tampilkan Laporan
-            </button>
+            {/* Tombol aksi */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <button
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                    onClick={loadData}
+                >
+                    Tampilkan Laporan
+                </button>
 
-            <button
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-                onClick={exportToExcel}
-            >
-                Export Excel
-            </button>
+                <button
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                    onClick={exportToExcel}
+                    disabled={results.length === 0}
+                >
+                    Export Excel
+                </button>
+            </div>
 
             {/* Tabel */}
-            <table className="mt-6 w-full bg-white dark:bg-gray-900 text-black dark:text-white shadow rounded">
-                <thead className="bg-gray-200 dark:bg-gray-700">
-                    <tr>
-                        <th className="p-2 border">Pelanggan</th>
-                        <th className="p-2 border">Layanan</th>
-                        <th className="p-2 border">Total Tagihan</th>
-                        <th className="p-2 border">Dibayar</th>
-                        <th className="p-2 border">Metode</th>
-                        <th className="p-2 border">Status</th>
-                        <th className="p-2 border">Tanggal</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {results.map((r) => (
-                        <tr key={r.id} className="odd:bg-gray-50 dark:odd:bg-gray-800">
-                            <td className="p-2 border">
-                                {r.orders?.customer_name}
-                            </td>
-                            <td className="p-2 border">
-                                {r.orders?.services?.name}
-                            </td>
-                            <td className="p-2 border">
-                                Rp{" "}
-                                {r.orders?.total_price
-                                    ? Number(r.orders.total_price).toLocaleString()
-                                    : 0}
-                            </td>
-                            <td className="p-2 border">
-                                Rp {Number(r.amount_paid || 0).toLocaleString()}
-                            </td>
-                            <td className="p-2 border">
-                                {renderMethodLabel(r.method)}
-                            </td>
-                            <td className="p-2 border">
-                                {renderStatusLabel(r.status)}
-                            </td>
-                            <td className="p-2 border">
-                                {r.payment_date ? r.payment_date.slice(0, 10) : "-"}
-                            </td>
+            <div className="mt-4 overflow-x-auto rounded-xl border border-slate-800">
+                <table className="min-w-full bg-slate-900 text-white text-xs sm:text-sm border-collapse">
+                    <thead className="bg-slate-900/80">
+                        <tr className="text-left text-gray-300">
+                            <th className="p-2 sm:p-3 border-b border-slate-800">
+                                Pelanggan
+                            </th>
+                            <th className="p-2 sm:p-3 border-b border-slate-800">
+                                Layanan
+                            </th>
+                            <th className="p-2 sm:p-3 border-b border-slate-800 whitespace-nowrap">
+                                Total Tagihan
+                            </th>
+                            <th className="p-2 sm:p-3 border-b border-slate-800 whitespace-nowrap">
+                                Dibayar
+                            </th>
+                            <th className="p-2 sm:p-3 border-b border-slate-800">
+                                Metode
+                            </th>
+                            <th className="p-2 sm:p-3 border-b border-slate-800">
+                                Status
+                            </th>
+                            <th className="p-2 sm:p-3 border-b border-slate-800 whitespace-nowrap">
+                                Tanggal
+                            </th>
                         </tr>
-                    ))}
+                    </thead>
 
-                    {results.length === 0 && (
-                        <tr>
-                            <td colSpan="7" className="text-center p-3">
-                                Tidak ada data
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                    <tbody>
+                        {results.map((r) => (
+                            <tr
+                                key={r.id}
+                                className="border-b border-slate-800 hover:bg-slate-900/60"
+                            >
+                                <td className="p-2 sm:p-3">
+                                    {r.orders?.customer_name}
+                                </td>
+                                <td className="p-2 sm:p-3">
+                                    {r.orders?.services?.name}
+                                </td>
+                                <td className="p-2 sm:p-3 whitespace-nowrap">
+                                    Rp{" "}
+                                    {r.orders?.total_price
+                                        ? Number(
+                                            r.orders.total_price
+                                        ).toLocaleString()
+                                        : 0}
+                                </td>
+                                <td className="p-2 sm:p-3 whitespace-nowrap">
+                                    Rp {Number(r.amount_paid || 0).toLocaleString()}
+                                </td>
+                                <td className="p-2 sm:p-3">
+                                    {renderMethodLabel(r.method)}
+                                </td>
+                                <td className="p-2 sm:p-3">
+                                    {renderStatusLabel(r.status)}
+                                </td>
+                                <td className="p-2 sm:p-3 whitespace-nowrap">
+                                    {r.payment_date
+                                        ? r.payment_date.slice(0, 10)
+                                        : "-"}
+                                </td>
+                            </tr>
+                        ))}
+
+                        {results.length === 0 && (
+                            <tr>
+                                <td
+                                    colSpan={7}
+                                    className="p-4 text-center text-sm text-gray-400"
+                                >
+                                    Tidak ada data
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

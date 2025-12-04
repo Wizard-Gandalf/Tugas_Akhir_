@@ -8,46 +8,68 @@ export default function Navbar() {
     if (!admin) return null;
 
     return (
-        <nav className="bg-gray-900 text-white shadow">
-            <div className="flex justify-between items-center px-6 py-3">
-                <h1 className="font-bold text-lg">
+        <nav className="bg-slate-950 text-white border-b border-slate-800">
+            <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+
+                {/* Brand */}
+                <h1 className="font-bold text-base sm:text-lg">
                     MyLaundryManager
                 </h1>
 
-                <div className="flex items-center gap-6 text-sm">
-                    <NavLink to="/app/dashboard" className="hover:text-blue-300">
+                {/* Menu + tombol logout */}
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm w-full sm:w-auto">
+                    <NavLink
+                        to="/app/dashboard"
+                        className="whitespace-nowrap hover:text-blue-300"
+                    >
                         Dashboard
                     </NavLink>
 
-                    {/* Pelanggan dihapus */}
-
-                    <NavLink to="/app/services" className="hover:text-blue-300">
+                    <NavLink
+                        to="/app/services"
+                        className="whitespace-nowrap hover:text-blue-300"
+                    >
                         Layanan
                     </NavLink>
 
-                    <NavLink to="/app/staff" className="hover:text-blue-300">
+                    <NavLink
+                        to="/app/staff"
+                        className="whitespace-nowrap hover:text-blue-300"
+                    >
                         Petugas
                     </NavLink>
 
-                    <NavLink to="/app/orders" className="hover:text-blue-300">
+                    <NavLink
+                        to="/app/orders"
+                        className="whitespace-nowrap hover:text-blue-300"
+                    >
                         Pesanan
                     </NavLink>
 
-                    <NavLink to="/app/payments" className="hover:text-blue-300">
+                    <NavLink
+                        to="/app/payments"
+                        className="whitespace-nowrap hover:text-blue-300"
+                    >
                         Pembayaran
                     </NavLink>
 
-                    <NavLink to="/app/reports" className="hover:text-blue-300">
+                    <NavLink
+                        to="/app/reports"
+                        className="whitespace-nowrap hover:text-blue-300"
+                    >
                         Laporan
                     </NavLink>
 
-                    <NavLink to="/app/about" className="hover:text-blue-300">
+                    <NavLink
+                        to="/app/about"
+                        className="whitespace-nowrap hover:text-blue-300"
+                    >
                         Tentang
                     </NavLink>
 
                     <button
                         onClick={logout}
-                        className="bg-white text-black rounded px-3 py-1 hover:bg-gray-200"
+                        className="ml-auto sm:ml-0 bg-white text-black rounded px-3 py-1 hover:bg-gray-200"
                     >
                         Logout
                     </button>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../api/supabaseClient";
 import { useAuth } from "../hooks/useAuth";
+import OrdersChart from "../components/charts/OrdersChart";
 
 export default function Dashboard() {
     const { admin } = useAuth();
@@ -28,7 +29,7 @@ export default function Dashboard() {
     }, []);
 
     async function loadStats() {
-        // total STAFF (ganti dari customers -> staff)
+        // total STAFF
         const { count: staffCount } = await supabase
             .from("staff")
             .select("*", { count: "exact", head: true });
@@ -78,8 +79,18 @@ export default function Dashboard() {
         const endStr = today.toISOString().slice(0, 10);
 
         const monthNames = [
-            "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-            "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "Mei",
+            "Jun",
+            "Jul",
+            "Agu",
+            "Sep",
+            "Okt",
+            "Nov",
+            "Des",
         ];
         const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
@@ -89,7 +100,6 @@ export default function Dashboard() {
             const { data, error } = await supabase
                 .from("orders")
                 .select("id, order_date")
-                // gunakan rentang penuh per hari agar tidak terpotong jam
                 .gte("order_date", `${startStr} 00:00:00`)
                 .lte("order_date", `${endStr} 23:59:59`);
 
@@ -128,82 +138,106 @@ export default function Dashboard() {
         setWeekRange(`${startLabel} – ${endLabel}`);
     }
 
-    const maxCount =
-        weeklyOrders.length > 0
-            ? Math.max(...weeklyOrders.map((d) => d.count), 1)
-            : 1;
+    const totalWeeklyOrders = weeklyOrders.reduce(
+        (sum, d) => sum + d.count,
+        0
+    );
 
     return (
-        <div className="px-8 py-8 mt-16 text-white min-h-screen bg-slate-950">
-            <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-            <p className="text-sm text-gray-400 mb-8">
-                Ringkasan aktivitas laundry hari ini dan performa 7 hari terakhir.
-            </p>
+        <div className="text-white">
+            {/* Batasi lebar konten agar rapi di desktop */}
+            <div className="max-w-6xl mx-auto space-y-8">
+                {/* Header */}
+                <header className="pt-2 sm:pt-4">
+                    <h1 className="text-2xl sm:text-3xl font-bold mb-1">
+                        Dashboard
+                    </h1>
+                    <p className="text-xs sm:text-sm text-gray-400">
+                        Ringkasan aktivitas laundry hari ini dan performa 7 hari terakhir.
+                    </p>
+                </header>
 
-            {/* Kartu statistik */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <StatCard title="Total Petugas" value={stats.staff} />
-                <StatCard title="Total Pesanan" value={stats.orders} />
-                <StatCard title="Pesanan Hari Ini" value={stats.ordersToday} />
-                <StatCard
-                    title="Pendapatan Bulan Ini"
-                    value={`Rp ${stats.monthlyIncome.toLocaleString()}`}
-                />
-            </div>
+                {/* Kartu statistik */}
+                <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+                    <StatCard
+                        title="Total Petugas"
+                        value={stats.staff}
+                        subtitle="Petugas aktif terdaftar"
+                    />
+                    <StatCard
+                        title="Total Pesanan"
+                        value={stats.orders}
+                        subtitle="Semua pesanan tersimpan"
+                    />
+                    <StatCard
+                        title="Pesanan Hari Ini"
+                        value={stats.ordersToday}
+                        subtitle="Masuk sejak 00.00"
+                    />
+                    <StatCard
+                        title="Pendapatan Bulan Ini"
+                        value={`Rp ${stats.monthlyIncome.toLocaleString()}`}
+                        subtitle="Akumulasi semua pembayaran"
+                    />
+                </section>
 
-            {/* Grafik mingguan */}
-            <div className="bg-slate-900 rounded-xl shadow p-6">
-                <div className="flex items-center justify-between mb-2">
-                    <div>
-                        <h2 className="text-lg font-semibold">
-                            Grafik Pesanan / Mingguan
-                        </h2>
-                        <p className="text-xs text-gray-400">
-                            7 hari terakhir{weekRange ? ` (${weekRange})` : ""}
-                        </p>
-                    </div>
-                </div>
+                {/* Grafik mingguan */}
+                <section className="bg-slate-900 rounded-2xl shadow border border-slate-800 px-4 py-4 sm:px-6 sm:py-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                        <div>
+                            <h2 className="text-base sm:text-lg font-semibold">
+                                Grafik Pesanan / Mingguan
+                            </h2>
+                            <p className="text-[11px] sm:text-xs text-gray-400">
+                                7 hari terakhir{weekRange ? ` (${weekRange})` : ""}
+                            </p>
+                        </div>
 
-                <div className="mt-6 h-64 flex items-end gap-4 border-t border-slate-800 pt-6 overflow-x-auto">
-                    {weeklyOrders.map((item) => {
-                        const height = (item.count / maxCount) * 100;
-                        return (
-                            <div
-                                key={item.label}
-                                className="flex flex-col items-center min-w-[48px]"
-                            >
-                                <div
-                                    className="w-6 rounded-t-md bg-blue-500 transition-all"
-                                    style={{ height: `${height || 4}%` }}
-                                ></div>
-                                <span className="mt-2 text-xs text-gray-300">
-                                    {item.count}
-                                </span>
-                                <span className="mt-1 text-[10px] text-gray-400 text-center leading-tight">
-                                    {item.label}
+                        {weeklyOrders.length > 0 && (
+                            <div className="inline-flex items-center gap-2 rounded-full bg-slate-800/70 px-3 py-1">
+                                <span className="h-2 w-2 rounded-full bg-blue-500" />
+                                <span className="text-[11px] sm:text-xs text-gray-200">
+                                    Total 7 hari:{" "}
+                                    <span className="font-semibold">
+                                        {totalWeeklyOrders} pesanan
+                                    </span>
                                 </span>
                             </div>
-                        );
-                    })}
+                        )}
+                    </div>
 
-                    {weeklyOrders.length === 0 && (
-                        <div className="text-sm text-gray-500">
+                    {weeklyOrders.length > 0 ? (
+                        <div className="h-64 sm:h-72">
+                            <OrdersChart
+                                labels={weeklyOrders.map((d) => d.label)}
+                                values={weeklyOrders.map((d) => d.count)}
+                            />
+                        </div>
+                    ) : (
+                        <div className="mt-4 text-sm text-gray-400">
                             Tidak ada data pesanan untuk 7 hari terakhir.
                         </div>
                     )}
-                </div>
+                </section>
             </div>
         </div>
     );
 }
 
-function StatCard({ title, value }) {
+function StatCard({ title, value, subtitle }) {
     return (
-        <div className="bg-slate-900 p-5 rounded-xl shadow border border-slate-800">
-            <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">
-                {title}
-            </p>
-            <p className="text-2xl font-bold">{value}</p>
+        <div className="bg-slate-900 p-4 sm:p-5 rounded-2xl shadow border border-slate-800 flex flex-col justify-between">
+            <div>
+                <p className="text-[11px] sm:text-xs uppercase tracking-wide text-gray-400 mb-1">
+                    {title}
+                </p>
+                <p className="text-xl sm:text-2xl font-bold mb-1">{value}</p>
+            </div>
+            {subtitle && (
+                <p className="text-[10px] sm:text-xs text-gray-500">
+                    {subtitle}
+                </p>
+            )}
         </div>
     );
 }
