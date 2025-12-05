@@ -1,62 +1,84 @@
+// src/pages/Auth/AddAdmin.jsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../api/supabaseClient";
 
 export default function AddAdmin() {
-    const [data, setData] = useState({ username: "", password: "" });
-    const [msg, setMsg] = useState("");
+    const navigate = useNavigate();
+    const [form, setForm] = useState({
+        username: "",
+        password: "",
+    });
+    const [error, setError] = useState("");
 
     function handleChange(e) {
-        setData({ ...data, [e.target.name]: e.target.value });
+        setForm({ ...form, [e.target.name]: e.target.value });
     }
 
     async function handleSubmit(e) {
         e.preventDefault();
+        setError("");
 
-        const { error } = await supabase
-            .from("admins")
-            .insert([{ username: data.username, password: data.password }]);
+        if (!form.username.trim() || !form.password.trim()) {
+            setError("Username dan password wajib diisi");
+            return;
+        }
+
+        const { error } = await supabase.from("admins").insert({
+            username: form.username.trim(),
+            password: form.password.trim(),
+        });
 
         if (error) {
-            setMsg("Gagal menambahkan admin: " + error.message);
+            setError(error.message);
         } else {
-            setMsg("Admin berhasil ditambahkan");
+            navigate("/"); // kembali ke halaman login
         }
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="bg-white p-8 rounded-lg shadow w-96">
-                <h1 className="text-2xl font-semibold mb-4 text-center">
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-black dark:text-white">
+            <div className="w-full max-w-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6">
+                <h1 className="text-xl font-semibold mb-4 text-center">
                     Tambah Admin
                 </h1>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                    <p className="text-red-500 text-sm mb-3 text-center">
+                        {error}
+                    </p>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-3">
                     <input
                         name="username"
+                        type="text"
                         placeholder="Username"
-                        value={data.username}
+                        value={form.username}
                         onChange={handleChange}
-                        className="w-full border px-3 py-2 rounded"
+                        className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600
+                                   bg-white dark:bg-gray-700 text-black dark:text-white
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
 
                     <input
-                        type="password"
                         name="password"
+                        type="password"
                         placeholder="Password"
-                        value={data.password}
+                        value={form.password}
                         onChange={handleChange}
-                        className="w-full border px-3 py-2 rounded"
+                        className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600
+                                   bg-white dark:bg-gray-700 text-black dark:text-white
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
 
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 text-white py-2 rounded"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded"
                     >
                         Simpan
                     </button>
                 </form>
-
-                {msg && <p className="mt-3 text-center text-sm">{msg}</p>}
             </div>
         </div>
     );
